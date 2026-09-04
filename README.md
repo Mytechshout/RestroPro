@@ -1,221 +1,92 @@
-# RESTROPro SaaS POS
+# OneOs Pos
 
-Point‑of‑Sale (POS) system for restaurants, cafes, hotels, and food trucks.
+OneOs Pos is a multi-tenant restaurant point-of-sale application based on the MIT-licensed [RestroPro](https://github.com/TheNeovimmer/RestroPro) project.
 
-**Tech stack**
+## Stack
 
-- **Frontend**: React.js, Tailwind CSS
-- **Backend**: Node.js, Express.js
-- **Database**: MySQL
-- **Deployment**: Docker / Cloud (e.g., AWS, DigitalOcean)
+- Frontend: React 18, Vite, Tailwind CSS, DaisyUI, SWR, Socket.IO client and PWA support
+- Backend: Node.js, Express, MySQL2, JWT cookie authentication and Socket.IO
+- Database: MySQL 8 or MariaDB 10.4+
+- Production: Nginx/aaPanel with Cloudflare DNS and TLS
 
----
+## Verified features
 
-## 🚀 Features
+- Multi-tenant restaurant accounts and subscription state
+- Restaurant admin/staff authentication with scope-based permissions
+- Super-admin tenant dashboard, tenant management, reports and subscription history
+- Categories, menu items, variants, add-ons, taxes and payment types
+- POS orders, kitchen status workflow, invoices and QR-menu orders
+- Tables, reservations, customers, staff users and CSV customer import
+- Inventory, recipes, automatic stock deduction and stock movement logs
+- Sales dashboards, reports and customer feedback
+- A4 browser/system printing and 57/80 mm Web Bluetooth thermal printing
+- Responsive restaurant and super-admin dashboards
 
-- Multi‑tenant SaaS: Create and manage independent businesses
-- User authentication: Admins, staff, and roles
-- Menu & product management: Categories, items, pricing, modifiers
-- Order processing: POS UI, kitchen display, invoice/bill printing
-- Table management: Floor plans, table statuses, split‑check support
-- Inventory tracking
-- Reports & analytics: Sales summaries, daily/weekly reports
-- Settings: Tax, tips, payment methods (cash/card), receipts
-- Integrations (optional): Payment gateways, QR ordering, delivery platforms
+External services require their own configuration: SMTP for password-reset email, Stripe for subscriptions, and compatible printer hardware for physical print testing. There is no Zomato synchronization; the Pranav catalogue is an optional local seed based on the supplied public menu.
 
----
+## Local setup
 
-## 🎞️ Getting Started
+Requirements: Node.js 20 LTS, npm and MySQL/MariaDB.
 
-### Prerequisites
-
-- Node.js ≥ 16
-- MySQL ≥ 8
-- Git
-- (Optional) Docker
-
-### Setup Instructions
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/your‑org/restropro-pos.git
-   cd restropro-pos
-   ```
-
-2. **Install backend dependencies**
-
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. **Install frontend dependencies**
-
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Configure environment variables**\
-   Create `.env.local` in `frontend` and `.env` in `backend` using the `.env.example` templates.\
-   Sample variables:
-
-   **backend/.env**
-
-   ```
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_USER=root
-   DB_PASS=yourpassword
-   DB_NAME=restropro
-   JWT_SECRET=your_jwt_secret
-   PORT=4000
-   ```
-
-   **frontend/.env.local**
-
-   ```
-   REACT_APP_BACKEND_URL=http://localhost:4000/api
-   ```
-
-5. **Initialize database**\
-   Ensure your MySQL service is running. Then:
-
-   ```bash
-   cd backend
-   npm run migrate
-   npm run seed
-   ```
-
-6. **Run in development**
-
-   - **Backend**
-     ```bash
-     cd backend
-     npm run dev
-     ```
-   - **Frontend**
-     ```bash
-     cd ../frontend
-     npm start
-     ```
-
-   Your app should now be accessible at `http://localhost:3000`.
-
----
-
-## 🧰 Available Scripts
-
-### Backend (Node.js / Express)
-
-- `npm run dev`: Start development server with hot reload
-- `npm run build`: Compile production build
-- `npm start`: Start production server
-- `npm run migrate`: Run DB migrations
-- `npm run seed`: Seed initial mock data
-
-### Frontend (React.js / Tailwind)
-
-- `npm start`: Launch development server
-- `npm run build`: Create optimized production build
-- `npm test`: Run UI tests
-
----
-
-## ⚙️ Project Structure
-
-```
-.
-├── backend
-│   ├── src
-│   │   ├── controllers/   # API logic
-│   │   ├── models/        # Sequelize or TypeORM schema
-│   │   ├── routes/        # Express routing
-│   │   ├── middlewares/
-│   │   ├── utils/
-│   │   ├── config/        # DB, server settings
-│   ├── migrations/
-│   ├── seeds/
-│   └── tests/
-└── frontend
-    ├── src
-    │   ├── components/
-    │   ├── pages/
-    │   ├── styles/
-    │   ├── context/       # React Context or Zustand
-    │   ├── hooks/
-    │   ├── services/      # API service calls (axios / fetch)
-    │   └── assets/
-    ├── public/
-    └── tailwind.config.js
+```powershell
+git clone <your-fork-url>
+cd RestroPro
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
+cd backend
+npm ci
+cd ../frontend
+npm ci
 ```
 
----
+Create a database and import the initial schema:
 
-## ✅ Authentication & Authorization
+```powershell
+mysql -u root -p -e "CREATE DATABASE oneos_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+cmd /c "mysql -u root -p oneos_pos < backend\restropro_saas.sql"
+```
 
-- JWT-based auth for backend APIs
-- Role-based frontend routing and UI: Admins vs Staff
-- Secure store of tokens in HTTP-only cookies / `localStorage`
+Set `DATABASE_URL` and secure secrets in `backend/.env`. For local development, set both frontend/backend domain values to `http://localhost:5173` and backend URLs to `http://localhost:3000`.
 
----
+Start each application in a separate terminal:
 
-## 🧪 Testing
+```powershell
+cd backend
+npm run dev
+```
 
-- **Backend**: Jest + Supertest
-  ```bash
-  npm test
-  ```
-- **Frontend**: React Testing Library + Jest
-  ```bash
-  npm test
-  ```
+```powershell
+cd frontend
+npm run dev
+```
 
----
+Open `http://localhost:5173`. The super-admin login is at `http://localhost:5173/superadmin/login`.
 
-## 📦 Deployment Options
+## Utility commands
 
-- Docker-compose: `frontend`, `backend`, `mysql`, `redis`
-- Deploy to AWS EC2, ECS, or DigitalOcean App Platform
-- Use managed MySQL (e.g., RDS). Configure `DB_*` variables accordingly.
+```powershell
+# Backend: create/update the super administrator from environment variables
+$env:SUPERADMIN_EMAIL="super@admin.com"
+$env:SUPERADMIN_PASSWORD="<strong-password>"
+$env:SUPERADMIN_NAME="Super Admin"
+npm run create-superadmin
 
----
+# Backend: idempotently seed the existing Pranav tenant
+npm run seed:pranav-demo -- admin@pranav.com
 
-## ⚙️ Environment Variables
+# Frontend production build
+cd ../frontend
+npm run build
+```
 
-| Name                    | Description          | Default                     |
-| ----------------------- | -------------------- | --------------------------- |
-| `DB_HOST`               | MySQL hostname or IP | `localhost`                 |
-| `DB_PORT`               | MySQL port           | `3306`                      |
-| `DB_USER`               | MySQL user           | `root`                      |
-| `DB_PASS`               | MySQL password       | *(none)*                    |
-| `DB_NAME`               | Database name        | `restropro`                 |
-| `JWT_SECRET`            | JWT encryption key   | *(set it)*                  |
-| `PORT`                  | Backend server port  | `4000`                      |
-| `REACT_APP_BACKEND_URL` | API endpoint URL     | `http://localhost:4000/api` |
+Do not commit either `.env` file or real credentials.
 
----
+## Documentation
 
-## 🙏 Contributing
+- [Functional audit](FUNCTIONAL_AUDIT.md)
+- [aaPanel deployment guide](AAPPANEL_DEPLOYMENT.md)
+- [User and role guide](OPERATIONS_GUIDE.md)
 
-1. Fork and create a feature branch
-2. Write clean, tested code
-3. Open a Pull Request detailing changes
+## License and support
 
----
-
-## 📝 License
-
-Licensed under the **[insert license here]**.
-
----
-
-## 📞 Contact
-
-For questions, feature requests, or issues, open a GitHub Issue or email [**support@example.com**](mailto\:support@example.com).
-
----
-
-Thanks for using RESTROPro – powering restaurant businesses with seamless SaaS POS!
-
+The upstream project is licensed under the MIT License; retain the repository `LICENSE` file and copyright notice. Project support: [support@pixelperfect.co.in](mailto:support@pixelperfect.co.in).

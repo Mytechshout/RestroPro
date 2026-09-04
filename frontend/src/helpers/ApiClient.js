@@ -45,7 +45,7 @@ apiClient.interceptors.response.use(
       retryCounter+=1;
 
       if(retryCounter > 3) {
-        Cookie.remove("restroprosaas__authenticated");
+        Cookie.remove("oneospos__authenticated");
         if(role == "superadmin") {
           window.location.href = "/superadmin";
         } else {

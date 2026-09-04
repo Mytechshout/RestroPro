@@ -20,6 +20,7 @@ import POSMenuItemDetailedView from '../components/POSMenuItemDetailedView';
 import POSMenuItemCompactView from '../components/POSMenuItemCompactView';
 import { clsx } from "clsx";
 import { useTheme } from '../contexts/ThemeContext';
+import { getPrinterMode, printReceiptViaBluetooth } from '../helpers/BluetoothPrinter';
 
 export default function POSPage() {
   const { t } = useTranslation();
@@ -29,6 +30,28 @@ export default function POSPage() {
   const { theme } = useTheme();
   const diningOptionRef = useRef();
   const tableRef = useRef();
+
+  const openSystemReceiptWindow = () => {
+    const receiptWindow = window.open("/print-receipt", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400");
+    receiptWindow.onload = () => {
+      setTimeout(() => receiptWindow.print(), 800);
+    };
+  };
+
+  const printConfiguredReceipt = async (receiptDetails) => {
+    if (getPrinterMode() === "bluetooth") {
+      try {
+        await printReceiptViaBluetooth(receiptDetails);
+        toast.success("Receipt sent to Bluetooth printer.");
+        return;
+      } catch (error) {
+        console.error(error);
+        toast.error(`${error?.message || "Bluetooth printing failed"} Opening system print instead.`);
+      }
+    }
+
+    openSystemReceiptWindow();
+  };
 
   // dialog: notes ref
   const dialogNotesIndexRef = useRef();
@@ -753,7 +776,7 @@ export default function POSPage() {
           paymentMethodText = paymentType.title;
         }
 
-        setDetailsForReceiptPrint({
+        const receiptDetails = {
           cartItems, deliveryType, customerType, customer, tableId, currency, storeSettings, printSettings,
           itemsTotal: state.itemsTotal,
           taxTotal: state.taxTotal,
@@ -762,7 +785,8 @@ export default function POSPage() {
           tokenNo: data.tokenNo,
           orderId: data.orderId,
           paymentMethod: paymentMethodText
-        });
+        };
+        setDetailsForReceiptPrint(receiptDetails);
 
         sendNewOrderEvent(data.tokenNo, data.orderId);
 
@@ -787,14 +811,7 @@ export default function POSPage() {
         _initPOS()
 
         if(is_enable_print) {
-          setTimeout(()=>{
-            const receiptWindow = window.open("/print-receipt", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400");
-            receiptWindow.onload = (e) => {
-              setTimeout(()=>{
-                receiptWindow.print();
-              },800)
-            }
-          }, 100)
+          await printConfiguredReceipt(receiptDetails);
           return;
         }
 
@@ -848,7 +865,7 @@ export default function POSPage() {
         const page_format = printSettings?.page_format || null;
         const is_enable_print = printSettings?.is_enable_print || 0;
 
-        setDetailsForReceiptPrint({
+        const receiptDetails = {
           cartItems, deliveryType, customerType, customer, tableId, currency, storeSettings, printSettings,
           itemsTotal: state.itemsTotal,
           taxTotal: state.taxTotal,
@@ -856,7 +873,8 @@ export default function POSPage() {
           payableTotal: state.payableTotal,
           tokenNo: data.tokenNo,
           orderId: data.orderId
-        });
+        };
+        setDetailsForReceiptPrint(receiptDetails);
 
         sendNewOrderEvent(data.tokenNo, data.orderId);
 
@@ -880,14 +898,7 @@ export default function POSPage() {
         _initPOS()
 
         if(is_enable_print) {
-          setTimeout(()=>{
-            const receiptWindow = window.open("/print-receipt", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400");
-            receiptWindow.onload = (e) => {
-              setTimeout(()=>{
-                receiptWindow.print();
-              },800)
-            }
-          }, 100)
+          await printConfiguredReceipt(receiptDetails);
           return;
         }
 

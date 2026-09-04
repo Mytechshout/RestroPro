@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
-import Logo from "../../assets/logo.svg";
-import LogoDark from "../../assets/LogoDark.svg";
+import AppLogo from "../../components/AppLogo";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -105,7 +104,7 @@ export default function SuperAdminLoginPage() {
               {t("superadmin_login.login")}
             </div>
             <div>
-              <img src={theme === "black" ? LogoDark : Logo} className="h-16" />
+              <AppLogo theme={theme} className="h-12 max-w-[190px]" />
             </div>
           </div>
 

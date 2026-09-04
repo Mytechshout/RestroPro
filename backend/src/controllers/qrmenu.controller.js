@@ -71,14 +71,14 @@ exports.placeOrderViaQrMenu = async (req, res) => {
 
       const {deliveryType , cartItems, customerType, customer, tableId} = req.body;
 
-      if(cartItems?.length == 0) {
+      if(!Array.isArray(cartItems) || cartItems.length === 0) {
         return res.status(400).json({
           success: false,
           message: req.__("cart_is_empty") // Translate message
         });
       }
 
-      const result = await placeOrderViaQrMenuDB(tenantId, deliveryType , cartItems, customerType, customer.phone || null, tableId || null , customer.name || null);
+      const result = await placeOrderViaQrMenuDB(tenantId, deliveryType , cartItems, customerType, customer?.phone || null, tableId || null , customer?.name || null);
 
       return res.status(200).json({
         success: true,
@@ -114,7 +114,15 @@ exports.collectFeedback = async (req, res) => {
     }
 
     // 1. check if invoice is valid or not, if yes then get invoice id
-    const { invoice_id, customer_id } = await checkInvoiceIdDB(encryptedInvoiceId);
+    const invoice = await checkInvoiceIdDB(encryptedInvoiceId, tenantId);
+    if (!invoice) {
+      return res.status(400).json({
+        success: false,
+        message: req.__("broken_link_goto_homepage")
+      });
+    }
+
+    const { invoice_id, customer_id } = invoice;
 
     await saveFeedbackDB(tenantId, invoice_id, customer_id, phone, name, email, birthdate, averageRating, food_quality, service, ambiance, staff_behavior, recommend, remarks);
 

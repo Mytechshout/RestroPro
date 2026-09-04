@@ -41,9 +41,14 @@ export default function PrintTokenPage() {
   // } = printSettings;
 
   const page_format = printSettings?.page_format || 80;
+  const isA4 = String(page_format).toUpperCase() === "A4";
+  const receiptWidth = isA4 ? "210mm" : `${Number(page_format) || 80}mm`;
 
   return (
-    <div className={`w-[${page_format}mm] font-sans px-2 bg-white text-black`}>
+    <div
+      className="font-sans px-2 bg-white text-black"
+      style={{ width: receiptWidth, minHeight: isA4 ? "297mm" : undefined }}
+    >
       <div className="mt-4 py-8 text-center">
         {t("print_token.token_no")}
         <div className="w-28 h-28 mx-auto border-black border-2 text-black flex items-center justify-center font-bold text-4xl rounded-full">

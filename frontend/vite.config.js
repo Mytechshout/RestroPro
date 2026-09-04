@@ -8,21 +8,26 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+      },
       manifest: {
-        name: "RestroPro",
-        short_name: "RestroPro",
+        name: "OneOs Pos",
+        short_name: "OneOs Pos",
         description: "Manage Your Restaurant, Cafe, Hotel, Bar, Food Truck, Stall, any food store.",
         theme_color: "#ECF1EB",
         icons: [
           {
-            src: "/logo_192.png",
-            sizes: "192x192",
-            type: "image/png",
+            src: "/one-pos-icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
           },
           {
-            src: "/logo.png",
-            sizes: "512x512",
-            type: "image/png",
+            src: "/one-pos-icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
           },
         ],
       },

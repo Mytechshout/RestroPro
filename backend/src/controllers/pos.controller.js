@@ -13,7 +13,7 @@ const {
   getAllRecipeItemsDB,
 } = require("../services/menu_item.service");
 const { createOrderDB, getPOSQROrdersCountDB, getPOSQROrdersDB, updateQROrderStatusDB, cancelAllQROrdersDB } = require("../services/pos.service");
-const { createInvoiceDB } = require("../services/orders.service");
+const { createInvoiceDB, deleteInvoiceDB } = require("../services/orders.service");
 
 exports.getPOSInitData = async (req, res) => {
   try {
@@ -76,7 +76,7 @@ exports.createOrder = async (req, res) => {
     const username = req.user.username;
     const {cart, deliveryType, customerType, customerId, tableId, selectedQrOrderItem} = req.body;
 
-    if(cart?.length == 0) {
+    if(!Array.isArray(cart) || cart.length === 0) {
       return res.status(400).json({
         success: false,
         message: req.__("cart_is_empty") // Translate message
@@ -98,9 +98,9 @@ exports.createOrder = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: req.__("error_processing_request_try_later") // Translate message
+      message: error.statusCode === 400 ? error.message : req.__("error_processing_request_try_later") // Translate message
     });
   }
 };
@@ -110,7 +110,7 @@ function canPrepareMenuItem(menuItem, quantity = 1) {
   const selectedVariantId = parseInt(menuItem.variant_id);
   const selectedAddonIds = (menuItem.addons_ids || []).map(String);
 
-  const relevantRecipeItems = menuItem.recipeItems.filter((recipe) => {
+  const relevantRecipeItems = (menuItem.recipeItems || []).filter((recipe) => {
     if (recipe.variant_id === 0 && recipe.addon_id === 0) return true;
     if (recipe.variant_id > 0 && recipe.variant_id == selectedVariantId) return true;
     if (recipe.addon_id > 0 && selectedAddonIds.includes(String(recipe.addon_id))) return true;
@@ -143,7 +143,7 @@ exports.createOrderAndInvoice = async (req, res) => {
     const username = req.user.username;
     const {cart, deliveryType, customerType, customerId, tableId, netTotal, taxTotal, serviceChargeTotal, total, selectedQrOrderItem, selectedPaymentType} = req.body;
 
-    if(cart?.length == 0) {
+    if(!Array.isArray(cart) || cart.length === 0) {
       return res.status(400).json({
         success: false,
         message: req.__("cart_is_empty") // Translate message
@@ -177,7 +177,13 @@ exports.createOrderAndInvoice = async (req, res) => {
     const invoiceId = await createInvoiceDB(netTotal, taxTotal, serviceChargeTotal, total, date, selectedPaymentType, tenantId);
     // create invoice
 
-    const result = await createOrderDB(tenantId, cart, deliveryType, customerType, customerId?.phone || null, tableId || null, 'paid', invoiceId, username);
+    let result;
+    try {
+      result = await createOrderDB(tenantId, cart, deliveryType, customerType, customerId?.phone || null, tableId || null, 'paid', invoiceId, username);
+    } catch (orderError) {
+      await deleteInvoiceDB(invoiceId, tenantId);
+      throw orderError;
+    }
     const orderId = result.orderId;
     const tokenNo = result.tokenNo;
 
@@ -195,9 +201,9 @@ exports.createOrderAndInvoice = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: req.__("error_processing_request_try_later") // Translate message
+      message: error.statusCode === 400 ? error.message : req.__("error_processing_request_try_later") // Translate message
     });
   }
 };

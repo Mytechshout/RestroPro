@@ -4,8 +4,31 @@ exports.createOrderDB = async (tenantId, cartItems, deliveryType, customerType, 
   const conn = await getMySqlPromiseConnection();
 
   try {
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      const error = new Error("Cart is empty");
+      error.statusCode = 400;
+      throw error;
+    }
+
     // start transaction
     await conn.beginTransaction();
+
+    const menuItemIds = [...new Set(cartItems.map((item) => Number(item.id)))];
+    if (menuItemIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      const error = new Error("Cart contains an invalid menu item");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const [validMenuItems] = await conn.query(
+      "SELECT id FROM menu_items WHERE id IN (?) AND tenant_id = ? AND is_enabled = 1",
+      [menuItemIds, tenantId]
+    );
+    if (validMenuItems.length !== menuItemIds.length) {
+      const error = new Error("Cart contains an unavailable menu item");
+      error.statusCode = 400;
+      throw error;
+    }
 
     // step 1: get current token no. from table token_sequences
     // if no data found give 0
@@ -45,11 +68,30 @@ exports.createOrderDB = async (tenantId, cartItems, deliveryType, customerType, 
     // step 6: Save updated token no. to table token_sequences
     await conn.query("INSERT INTO token_sequences ( sequence_no, last_updated, tenant_id) VALUES (?, NOW(), ?) ON DUPLICATE KEY UPDATE sequence_no = VALUES(sequence_no), last_updated = VALUES(last_updated) ;", [tokenNo, tenantId]);
 
-     // Track Recipe/Inventory Item Usuage
+     // Load recipes from the database. Never trust recipe quantities supplied by
+     // a browser because they directly control stock deductions.
+     const [recipeItems] = await conn.query(
+       `SELECT
+          mir.menu_item_id,
+          mir.variant_id,
+          mir.addon_id,
+          mir.inventory_item_id,
+          mir.quantity AS recipe_quantity,
+          ii.title AS ingredient_title,
+          ii.unit
+        FROM menu_item_recipes mir
+        INNER JOIN inventory_items ii
+          ON ii.id = mir.inventory_item_id AND ii.tenant_id = mir.tenant_id
+        WHERE mir.menu_item_id IN (?) AND mir.tenant_id = ?`,
+       [menuItemIds, tenantId]
+     );
+
+     // Track Recipe/Inventory Item Usage
      const inventoryUsage = {};
 
      cartItems.forEach(item => {
-       item.recipeItems.forEach(recipe => {
+       const itemRecipes = recipeItems.filter((recipe) => recipe.menu_item_id == item.id);
+       itemRecipes.forEach(recipe => {
          const { inventory_item_id, recipe_quantity, ingredient_title, unit, variant_id, addon_id } = recipe;
 
          // Skip if variant-specific and doesn't match
@@ -96,9 +138,21 @@ exports.createOrderDB = async (tenantId, cartItems, deliveryType, customerType, 
           [invId, tenantId]
         );
 
-        const previousQty = parseFloat(currentItem?.quantity || 0);
+        if (!currentItem) {
+          const error = new Error(`Inventory item ${invId} is unavailable`);
+          error.statusCode = 400;
+          throw error;
+        }
+
+        const previousQty = parseFloat(currentItem.quantity || 0);
         const newQty = previousQty - qtyUsed;
-        const minQuantityThreshold = parseFloat(currentItem?.min_quantity_threshold || 0);
+        const minQuantityThreshold = parseFloat(currentItem.min_quantity_threshold || 0);
+
+        if (newQty < 0) {
+          const error = new Error(`Not enough stock for ${usage.ingredient_title}`);
+          error.statusCode = 400;
+          throw error;
+        }
 
         // Insert into inventory_logs
         await conn.query(insertLogSql, [
@@ -285,8 +339,7 @@ exports.getPOSQROrdersDB = async (tenantId) => {
         WHERE mir.tenant_id = ?
       `;
 
-      const [recipeItemsResult] = await conn.query(recipeSql, [tenantId]);
-      recipeItems = recipeItemsResult;
+      const [recipeItems] = await conn.query(recipeSql, [tenantId]);
 
       // Attach recipeItems to each kitchenOrderItem
       kitchenOrdersItems = kitchenOrdersItems.map(oi => {

@@ -2,6 +2,7 @@ const { getUserDB } = require("../services/user.service");
 const { verifyToken } = require("../utils/jwt");
 const { ROLES } = require("../config/user.config");
 const { getAdminUserDB } = require("../services/superadmin.service");
+const { CONFIG } = require("../config");
 
 exports.isLoggedIn = (req, res, next) => {
     let token;
@@ -87,7 +88,7 @@ exports.hasRefreshToken = (req, res, next) => {
             secure: process.env.NODE_ENV == "production",
             path: "/"
         }); 
-        res.clearCookie('restro__authenticated', {
+        res.clearCookie('oneospos__authenticated', {
             expires: new Date(Date.now()),
             domain: CONFIG.FRONTEND_DOMAIN_COOKIE,
             sameSite: false,

@@ -1,5 +1,5 @@
 import React from "react";
-import Logo from "../assets/logo.svg";
+import AppLogo from "../components/AppLogo";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { forgotPassword } from "../controllers/auth.controller";
@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
               {t("reset_password.title")}
             </div>
             <div>
-              <img src={Logo} className="h-16" />
+              <AppLogo className="h-12 max-w-[190px]" />
             </div>
           </div>
 

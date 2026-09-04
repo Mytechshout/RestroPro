@@ -1,4 +1,9 @@
-const NAVBAR_SIZE_KEY = 'RESTROPROSAAS__NAVBAR';
+const NAVBAR_SIZE_KEY = 'ONEOSPOS__NAVBAR';
+
+export function setNavbarCollapsed(isCollapsed) {
+    localStorage.setItem(NAVBAR_SIZE_KEY, String(isCollapsed));
+    return isCollapsed;
+}
 
 /**
  * @returns {boolean} - 
@@ -6,11 +11,9 @@ const NAVBAR_SIZE_KEY = 'RESTROPROSAAS__NAVBAR';
 export function toggleNavbar() {
     const isNavbarCollapsed = localStorage.getItem(NAVBAR_SIZE_KEY);
     if(isNavbarCollapsed == true || isNavbarCollapsed == "true") {
-        localStorage.setItem(NAVBAR_SIZE_KEY, false);
-        return false;
+        return setNavbarCollapsed(false);
     } else {
-        localStorage.setItem(NAVBAR_SIZE_KEY, true);
-        return true;
+        return setNavbarCollapsed(true);
     }
 }
 export function getIsNavbarCollapsed() {

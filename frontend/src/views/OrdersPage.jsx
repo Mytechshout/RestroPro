@@ -39,6 +39,7 @@ import QRCode from "qrcode"
 import { getQRMenuLink } from "../helpers/QRMenuHelper";
 import { useTheme } from "../contexts/ThemeContext";
 import clsx from "clsx";
+import { getPrinterMode, printReceiptViaBluetooth } from "../helpers/BluetoothPrinter";
 
 export default function OrdersPage() {
   const { t } = useTranslation();
@@ -482,9 +483,9 @@ export default function OrdersPage() {
           customer_name,
           date,
           delivery_type,
-        } = ordersArr;
+        } = ordersArr[0] || {};
 
-        setDetailsForReceiptPrint({
+        const receiptDetails = {
           cartItems: orders,
           deliveryType: delivery_type,
           customerType: customer_type,
@@ -499,7 +500,19 @@ export default function OrdersPage() {
           payableTotal: total,
           tokenNo: tokens,
           orderId: orderIds,
-        });
+        };
+        setDetailsForReceiptPrint(receiptDetails);
+
+        if (getPrinterMode() === "bluetooth") {
+          try {
+            await printReceiptViaBluetooth(receiptDetails);
+            toast.success("Receipt sent to Bluetooth printer.");
+            return;
+          } catch (error) {
+            console.error(error);
+            toast.error(`${error?.message || "Bluetooth printing failed"} Opening system print instead.`);
+          }
+        }
 
         const receiptWindow = window.open(
           "/print-receipt",

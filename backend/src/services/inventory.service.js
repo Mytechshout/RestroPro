@@ -136,27 +136,30 @@ exports.updateInventoryItemDB = async (
 ) => {
   const conn = await getMySqlPromiseConnection();
   try {
-
-    let status = 'out';
-    if (quantity > 0 && quantity <= minQuantityThreshold) {
-      status = 'low';
-    } else if (quantity > minQuantityThreshold) {
-      status = 'in';
-    }
-
     const sql = `
       UPDATE inventory_items
-      SET title = ?, unit = ?, min_quantity_threshold = ?, status = ?,
+      SET title = ?,
+          unit = ?,
+          min_quantity_threshold = ?,
+          status = CASE
+            WHEN quantity <= 0 THEN 'out'
+            WHEN quantity <= ? THEN 'low'
+            ELSE 'in'
+          END
       WHERE id = ? AND tenant_id = ?
     `;
-    await conn.query(sql, [
+    const [result] = await conn.query(sql, [
       title,
       unit,
       minQuantityThreshold,
-      status,
+      minQuantityThreshold,
       itemId,
       tenantId,
     ]);
+
+    if (result.affectedRows === 0) {
+      throw new Error("Inventory item not found");
+    }
   } catch (error) {
     throw error;
   } finally {
@@ -262,10 +265,10 @@ exports.getInventoryLogsDB = async (movementType, type, from, to, tenantId) => {
           l.created_at
         FROM inventory_logs l
         JOIN inventory_items i ON i.id = l.inventory_item_id
-        WHERE l.tenant_id = ${tenantId} AND l.type = '${movementType}' AND ${filter}
+        WHERE l.tenant_id = ? AND l.type = ? AND ${filter}
         ORDER BY l.created_at DESC
       `;
-      const [rows] = await conn.query(sql, params);
+      const [rows] = await conn.query(sql, [tenantId, movementType, ...params]);
       return rows;
     }else{
       sql = `
@@ -281,10 +284,10 @@ exports.getInventoryLogsDB = async (movementType, type, from, to, tenantId) => {
           l.created_at
         FROM inventory_logs l
         JOIN inventory_items i ON i.id = l.inventory_item_id
-        WHERE l.tenant_id = ${tenantId} AND ${filter}
+        WHERE l.tenant_id = ? AND ${filter}
         ORDER BY l.created_at DESC
       `;
-      const [rows] = await conn.query(sql, params);
+      const [rows] = await conn.query(sql, [tenantId, ...params]);
       return rows;
     }
 
@@ -312,8 +315,12 @@ exports.getCummulativeInventoryMovementsDB = async (type, from, to, tenantId) =>
       FROM inventory_logs l
       JOIN inventory_items i ON i.id = l.inventory_item_id
       WHERE l.tenant_id = ? AND ${filter}
-      GROUP BY l.inventory_item_id
-      ORDER BY (total_in + total_out + total_wastage) DESC
+      GROUP BY l.inventory_item_id, i.title, i.unit
+      ORDER BY (
+        SUM(CASE WHEN l.type = 'in' THEN l.quantity_change ELSE 0 END) +
+        SUM(CASE WHEN l.type = 'out' THEN l.quantity_change ELSE 0 END) +
+        SUM(CASE WHEN l.type = 'wastage' THEN l.quantity_change ELSE 0 END)
+      ) DESC
     `;
 
     const [rows] = await conn.query(sql, [tenantId, ...params]);
@@ -343,7 +350,7 @@ exports.getInventoryUsageVsCurrentStockDB = async (type, from, to, tenantId) => 
       LEFT JOIN inventory_logs l
         ON l.inventory_item_id = i.id AND l.tenant_id = i.tenant_id AND ${filter}
       WHERE i.tenant_id = ?
-      GROUP BY i.id
+      GROUP BY i.id, i.title, i.quantity, i.min_quantity_threshold, i.unit, i.status
       ORDER BY total_usage DESC
     `;
 

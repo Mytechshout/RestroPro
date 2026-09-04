@@ -11,6 +11,15 @@ const {
   getServiceChargeDB,
 } = require("../services/settings.service");
 
+const normalizeOrderIds = (orderIds) => {
+  if (!Array.isArray(orderIds) || orderIds.length === 0) return null;
+
+  const normalized = [...new Set(orderIds.map(Number))];
+  if (normalized.some((id) => !Number.isInteger(id) || id <= 0)) return null;
+
+  return normalized;
+};
+
 exports.getInvoicesInit = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
@@ -222,22 +231,27 @@ exports.searchInvoices = async (req, res) => {
 exports.getInvoiceOrders = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
-    const orderIds = req.body.orderIds;
+    const orderIds = normalizeOrderIds(req.body.orderIds);
     const invoiceId = req.body.invoiceId;
 
-    if (!orderIds || orderIds?.length == 0) {
-      return res.status(400).JSON({
+    if (!orderIds || !Number.isInteger(Number(invoiceId)) || Number(invoiceId) <= 0) {
+      return res.status(400).json({
         success: false,
         message: req.__("invalid_request"), // Translate message
       });
     }
 
-    const orderIdsParams = orderIds.join(",");
-
     const [invoiceOrdersData, invoiceData] = await Promise.all([
-        getInvoiceOrdersDB(orderIdsParams),
+        getInvoiceOrdersDB(orderIds, Number(invoiceId), tenantId),
         getInvoiceByIdDB(invoiceId, tenantId),
       ]);
+
+    if (!invoiceData) {
+      return res.status(404).json({
+        success: false,
+        message: req.__("invalid_request"),
+      });
+    }
 
     const { kitchenOrders, kitchenOrdersItems, addons } = invoiceOrdersData;
     const {sub_total, tax_total, service_charge_total, total} = invoiceData;

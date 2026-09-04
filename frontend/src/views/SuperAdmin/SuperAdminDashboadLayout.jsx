@@ -8,9 +8,9 @@ export default function SuperAdminDashboadLayout() {
   const [isNavbarCollapsed] = useContext(NavbarContext)
 
   return (
-   <div className='flex'>
+   <div className='min-h-screen w-full'>
       <SuperAdminNavbar />
-      <div className={isNavbarCollapsed?`w-full ml-[5.5rem] overflow-y-auto h-screen`:`w-full ml-[5.5rem] md:ml-72 overflow-y-auto h-screen`}>
+      <div className={isNavbarCollapsed ? `w-full min-w-0 overflow-x-hidden md:pl-[5.5rem]` : `w-full min-w-0 overflow-x-hidden md:pl-72`}>
         <SuperAdminAppBar />
         <Outlet />
       </div>

@@ -1,5 +1,7 @@
 exports.CONFIG = {
+    APP_NAME: process.env.APP_NAME || "OneOs Pos",
     DATABASE_URL: process.env.DATABASE_URL,
+    DATABASE_SSL: process.env.DATABASE_SSL === "true",
     JWT_SECRET: process.env.JWT_SECRET,
     JWT_EXPIRY: process.env.JWT_EXPIRY,
     JWT_EXPIRY_REFRESH: process.env.JWT_EXPIRY_REFRESH,

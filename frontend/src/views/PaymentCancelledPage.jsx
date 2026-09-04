@@ -1,7 +1,7 @@
 import React from 'react'
 import AppBarDropdown from '../components/AppBarDropdown'
 import Page from "../components/Page";
-import Logo from "../assets/logo.svg";
+import AppLogo from "../components/AppLogo";
 import { IconChevronLeft, IconCircleXFilled } from '@tabler/icons-react';
 import { iconStroke } from '../config/config';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ export default function PaymentCancelledPage() {
   return (
     <Page className=''>
       <div className="fixed flex items-center justify-between px-4 py-3 border-b border-restro-border-green w-full">
-        <img src={Logo} alt="logo" className="h-12 block" />
+        <AppLogo className="max-w-[220px]" />
 
         {/* profile */}
         <AppBarDropdown />

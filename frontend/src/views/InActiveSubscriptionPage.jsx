@@ -1,6 +1,5 @@
 import Page from "../components/Page";
-import Logo from "../assets/logo.svg";
-import LogoDark from "../assets/LogoDark.svg"
+import AppLogo from "../components/AppLogo";
 import { iconStroke, stripeProductSubscriptionId, subscriptionPrice } from '../config/config';
 import React from "react";
 import { getStripeSubscriptionURL, signOut } from "../controllers/auth.controller";
@@ -37,7 +36,7 @@ export default function InActiveSubscriptionPage() {
   return (
     <Page className="">
       <div className="flex items-center justify-between px-4 py-3 border-b border-restro-gray">
-        <img src={theme === "black" ? LogoDark : Logo} alt="logo" className="h-12 block" />
+        <AppLogo theme={theme} className="max-w-[220px]" />
         <AppBarDropdown />
       </div>
 

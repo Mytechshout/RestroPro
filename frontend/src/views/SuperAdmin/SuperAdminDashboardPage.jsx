@@ -1,7 +1,7 @@
 import React from 'react'
 import Page from "../../components/Page";
 import ImgGirlSmiling from "../../assets/girl-smiling.webp"
-import ImgUiflowLogo from "../../assets/uiflow-logo.svg"
+import AppLogo from "../../components/AppLogo"
 import { Link } from 'react-router-dom';
 import { IconArrowRight, IconInfoCircleFilled } from '@tabler/icons-react';
 import { appVersion, iconStroke, subscriptionAmount } from '../../config/config';
@@ -41,12 +41,12 @@ export default function SuperAdminDashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">
 
-        <div className='md:row-span-3 bg-restro-superadmin-widget-bg rounded-[42px]'>
+        <div className='min-w-0 overflow-hidden md:row-span-3 bg-restro-superadmin-widget-bg rounded-3xl md:rounded-[42px]'>
           <p className='text-restro-superadmin-text-green font-bold text-center mt-4'>{t('superadmin_dashboard.active_tenants')}</p>
           <p className='text-white font-black text-7xl text-center'>{Number(activeTenants).toLocaleString("en", {
             notation: "compact"
           })}</p>
-          <img src={ImgGirlSmiling} alt="img" className='block h-96 mx-auto mt-10' />
+          <img src={ImgGirlSmiling} alt="img" className='block h-auto max-h-96 w-full max-w-full object-contain object-bottom mx-auto mt-6 md:mt-10' />
         </div>
 
         <div className='rounded-[42px] border px-8 py-5 flex flex-col justify-center border-restro-border-green'>
@@ -81,15 +81,15 @@ export default function SuperAdminDashboardPage() {
 
       </div>
 
-      <a href='https://uiflow.in' target='_blank' className="mt-16 flex flex-col md:flex-row items-center justify-center gap-4 text-[#A5A5A5]">
-        <img src={ImgUiflowLogo} alt="logo" className='block shadow w-16 h-16 rounded-2xl' />
+      <div className="mt-16 flex flex-col items-center justify-center gap-3 text-[#A5A5A5]">
+        <AppLogo className="max-w-[200px]" />
         <div>
           <p>
-            Developed by UIFLOW<sup>TM</sup><br/>
+            OneOs Pos<br/>
             Version {appVersion}
           </p>
         </div>
-      </a>
+      </div>
 
     </Page>
   )

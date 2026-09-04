@@ -35,8 +35,14 @@ export default function PrintReceiptPage() {
     print_token,
   } = printSettings;
 
+  const isA4 = String(page_format).toUpperCase() === "A4";
+  const receiptWidth = isA4 ? "210mm" : `${Number(page_format) || 80}mm`;
+
   return (
-    <div className={`w-[${page_format}mm] font-sans px-2 bg-white text-black`}>
+    <div
+      className="font-sans px-2 bg-white text-black"
+      style={{ width: receiptWidth, minHeight: isA4 ? "297mm" : undefined }}
+    >
 
       {show_store_details == 1 ? <>
 

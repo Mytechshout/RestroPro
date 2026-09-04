@@ -15,6 +15,7 @@ import {
   IconLayoutDashboard,
   IconLifebuoy,
   IconLogout,
+  IconMenu2,
   IconPrinter,
   IconReceiptTax,
   IconSearch,
@@ -23,7 +24,7 @@ import {
   IconUsersGroup,
   IconX,
 } from "@tabler/icons-react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { iconStroke } from "../config/config";
 import AvatarImg from "../assets/avatar.svg";
 import { Menu, Transition } from "@headlessui/react";
@@ -35,12 +36,20 @@ import { SCOPES } from "../config/scopes";
 import AppBarDropdown from "./AppBarDropdown";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../contexts/ThemeContext";
+import { NavbarContext } from "../contexts/NavbarContext";
+import { setNavbarCollapsed } from "../helpers/NavbarSettings";
 
 export default function AppBar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const { theme } = useTheme();
+  const [, setIsNavbarCollapsed] = useContext(NavbarContext);
+
+  const openMobileNavbar = () => {
+    setNavbarCollapsed(false);
+    setIsNavbarCollapsed(false);
+  };
 
   useEffect(() => {
     const down = (e) => {
@@ -204,25 +213,35 @@ export default function AppBar() {
 
   return (
     <>
-      <div className="flex items-center justify-between px-4 py-3 border-b w-full sticky top-0 backdrop-blur-md z-[9999] border-restro-border-green">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b w-full sticky top-0 backdrop-blur-md z-30 border-restro-border-green bg-restro-card-bg">
         {/* search */}
-        <button
-          onClick={btnShowSearchModal}
-          className="rounded-full flex items-center px-3 py-2 gap-2 bg-restro-green-light text-restro-text"
-        >
-          <IconSearch stroke={iconStroke} />
-          <div
-            type="text"
-            className="bg-transparent outline-none text-start w-48 md:flex items-center justify-between hidden"
-            placeholder={t('appbar.search_placeholder')}
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            aria-label="Open navigation"
+            onClick={openMobileNavbar}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-restro-green-light text-restro-text md:hidden"
           >
-            <p>{t('appbar.search_placeholder')}</p>
-            <div className="flex items-center gap-2">
-              <div className="kbd kbd-sm rounded-lg"><IconCommand stroke={iconStroke} size={20}/></div>
-              <div className="kbd kbd-sm rounded-lg">K</div>
+            <IconMenu2 stroke={iconStroke} />
+          </button>
+          <button
+            onClick={btnShowSearchModal}
+            className="rounded-full flex items-center px-3 py-2 gap-2 bg-restro-green-light text-restro-text"
+          >
+            <IconSearch stroke={iconStroke} />
+            <div
+              type="text"
+              className="bg-transparent outline-none text-start w-48 md:flex items-center justify-between hidden"
+              placeholder={t('appbar.search_placeholder')}
+            >
+              <p>{t('appbar.search_placeholder')}</p>
+              <div className="flex items-center gap-2">
+                <div className="kbd kbd-sm rounded-lg"><IconCommand stroke={iconStroke} size={20}/></div>
+                <div className="kbd kbd-sm rounded-lg">K</div>
+              </div>
             </div>
-          </div>
-        </button>
+          </button>
+        </div>
         {/* search */}
 
         {/* profile */}

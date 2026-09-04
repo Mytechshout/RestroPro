@@ -58,7 +58,7 @@ exports.signIn = async (req, res) => {
 
             res.cookie('accessToken', accessToken, cookieOptions);
             res.cookie('refreshToken', refreshToken, cookieRefreshTokenOptions);
-            res.cookie('restroprosaas__authenticated', true, {
+            res.cookie('oneospos__authenticated', true, {
                 expires: new Date(Date.now() + parseInt(CONFIG.COOKIE_EXPIRY_REFRESH)),
                 domain: CONFIG.FRONTEND_DOMAIN_COOKIE,
                 sameSite: false,
@@ -161,7 +161,7 @@ exports.signOut = async (req, res) => {
             secure: process.env.NODE_ENV == "production",
             path: "/"
         });
-        res.clearCookie('restroprosaas__authenticated', {
+        res.clearCookie('oneospos__authenticated', {
             expires: new Date(Date.now()),
             domain: CONFIG.FRONTEND_DOMAIN_COOKIE,
             sameSite: false,
@@ -240,7 +240,7 @@ exports.getNewAccessToken = async (req, res) => {
                 secure: process.env.NODE_ENV == "production",
                 path: "/"
             });
-            res.clearCookie('restroprosaas__authenticated', {
+            res.clearCookie('oneospos__authenticated', {
                 expires: new Date(Date.now()),
                 domain: CONFIG.FRONTEND_DOMAIN_COOKIE,
                 sameSite: false,
@@ -343,7 +343,7 @@ exports.forgotPassword = async (req, res) => {
 
             await mailTransport({
                 to: username,
-                subject: "Reset Your Password",
+                subject: `Reset Your ${CONFIG.APP_NAME} Password`,
                 html: `Here is link to reset your profile password, open link to setup new password. the link is only valid till next 20 minutes, don't share this link with anyone.<br/><br/>${resetPasswordURL}`
             });
         }

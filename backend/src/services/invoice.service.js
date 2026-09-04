@@ -140,7 +140,7 @@ exports.searchInvoicesDB = async (search, tenantId) => {
 };
 
 
-exports.getInvoiceOrdersDB = async (orderIdsToFindSummary) => {
+exports.getInvoiceOrdersDB = async (orderIdsToFindSummary, invoiceId, tenantId) => {
   const conn = await getMySqlPromiseConnection();
     try {
 
@@ -164,16 +164,18 @@ exports.getInvoiceOrdersDB = async (orderIdsToFindSummary) => {
         LEFT JOIN store_tables st ON o.table_id = st.id
       WHERE
         o.status NOT IN ('cancelled')
-        AND o.id IN (${orderIdsToFindSummary})
+        AND o.id IN (?)
+        AND o.invoice_id = ?
+        AND o.tenant_id = ?
       `;
 
-      const [kitchenOrders] = await conn.query(sql);
+      const [kitchenOrders] = await conn.query(sql, [orderIdsToFindSummary, invoiceId, tenantId]);
 
       let kitchenOrdersItems = [];
       let addons = [];
 
       if(kitchenOrders.length > 0) {
-        const orderIds = kitchenOrders.map(o=>o.id).join(",");
+        const orderIds = kitchenOrders.map(o=>o.id);
         const sql2 = `
         SELECT
           oi.id,
@@ -199,13 +201,13 @@ exports.getInvoiceOrdersDB = async (orderIdsToFindSummary) => {
           LEFT JOIN menu_item_variants miv ON oi.item_id = miv.item_id AND oi.variant_id = miv.id
           LEFT JOIN taxes t ON mi.tax_id = t.id
 
-        WHERE oi.order_id IN (${orderIds}) AND oi.status NOT IN ('cancelled')
+        WHERE oi.order_id IN (?) AND oi.status NOT IN ('cancelled') AND oi.tenant_id = ?
         `
-        const [kitchenOrdersItemsResult] = await conn.query(sql2);
+        const [kitchenOrdersItemsResult] = await conn.query(sql2, [orderIds, tenantId]);
         kitchenOrdersItems = kitchenOrdersItemsResult;
 
-        const addonIds = [...new Set([...kitchenOrdersItems.flatMap((o)=>o.addons?JSON.parse(o?.addons):[])])].join(",");
-        const [addonsResult] = addonIds ? await conn.query(`SELECT id, item_id, title, price FROM menu_item_addons WHERE id IN (${addonIds});`):[]
+        const addonIds = [...new Set([...kitchenOrdersItems.flatMap((o)=>o.addons?JSON.parse(o?.addons):[])])];
+        const [addonsResult] = addonIds.length ? await conn.query("SELECT id, item_id, title, price FROM menu_item_addons WHERE id IN (?) AND tenant_id = ?", [addonIds, tenantId]):[]
         addons = addonsResult;
       }
 

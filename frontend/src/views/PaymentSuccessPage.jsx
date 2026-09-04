@@ -1,8 +1,7 @@
 import React from 'react'
 import AppBarDropdown from '../components/AppBarDropdown'
 import Page from "../components/Page";
-import Logo from "../assets/logo.svg";
-import LogoDark from "../assets/LogoDark.svg"
+import AppLogo from "../components/AppLogo";
 import { IconCircleCheckFilled, IconLogout } from '@tabler/icons-react';
 import { iconStroke } from '../config/config';
 import toast from 'react-hot-toast';
@@ -36,7 +35,7 @@ export default function PaymentSuccessPage() {
   return (
     <Page className=''>
       <div className="fixed flex items-center justify-between px-4 py-3 border-b border-restro-border-green w-full dark:bg-black">
-        <img src={theme === "black" ? LogoDark : Logo} alt="logo" className="h-12 block" />
+        <AppLogo theme={theme} className="max-w-[220px]" />
 
         {/* profile */}
         <AppBarDropdown />

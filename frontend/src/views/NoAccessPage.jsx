@@ -1,8 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Page from "../components/Page";
-import Logo from "../assets/logo.svg";
-import LogoDark from "../assets/LogoDark.svg"
+import AppLogo from "../components/AppLogo";
 import { IconChevronLeft } from '@tabler/icons-react';
 import { iconStroke } from '../config/config';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +14,7 @@ export default function NoAccessPage() {
 
   return (
     <Page className='px-4 py-3 flex flex-col items-center justify-center w-full min-h-screen'>
-      <img src={theme === "black" ? LogoDark : Logo} alt="logo" className="h-14 block mb-6" />
+      <AppLogo theme={theme} className="mb-6 h-14 max-w-[220px]" />
       <h3 className="text-2xl text-center">{t('no_access.title')}</h3>
 
       <button onClick={() => navigate(-1)} className='btn btn-sm mt-6 px-3 py-1 rounded-xl hover:bg-restro-button-hover'>

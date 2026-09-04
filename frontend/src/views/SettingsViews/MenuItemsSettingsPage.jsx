@@ -179,12 +179,8 @@ export default function MenuItemsSettingsPage() {
                   className={clsx(
                     'w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-restro-text',
                     {
-                      // Visibility ON
-                      'hover:bg-restro-button-hover': is_enabled && theme === 'light',
-                      'text-white': is_enabled && theme === 'black',
-                      // Visibility OFF
-                      'hover:bg-restro-button-hover': !is_enabled && theme === 'light',
-                      'text-white': !is_enabled && theme === 'black',
+                      'hover:bg-restro-button-hover': theme === 'light',
+                      'text-white': theme === 'black',
                     }
                   )}
                 >

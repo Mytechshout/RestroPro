@@ -40,7 +40,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
 
         {/* reservation */}
-        <div className="border rounded-3xl h-96 overflow-y-auto border-restro-border-green">
+        <div className="min-w-0 border rounded-3xl h-96 overflow-y-auto border-restro-border-green">
           <div className= "py-5 px-6 border-b-0 backdrop-blur rounded-t-3xl sticky top-0">
             <Link to="/dashboard/reservation" className='font-bold'>{t('dashboard.reservations')}</Link>
           </div>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
         {/* reservation */}
 
         {/* popular items */}
-        <div className="border rounded-3xl h-96 overflow-y-auto border-restro-border-green">
+        <div className="min-w-0 border rounded-3xl h-96 overflow-y-auto border-restro-border-green">
           <div className="py-5 px-6 border-b-0 backdrop-blur rounded-t-3xl sticky top-0">
             <h3 className='font-bold'>{t('dashboard.top_selling_items')}</h3>
           </div>

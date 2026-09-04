@@ -5,7 +5,7 @@ export const FRONTEND_DOMAIN = import.meta.env.VITE_FRONTEND_DOMAIN
 
 export const iconStroke = 1.5;
 
-export const supportEmail = "hi@uiflow.in";
+export const supportEmail = "support@pixelperfect.co.in";
 export const appVersion = "1.8.0";
 
 export const subscriptionAmount = 5;

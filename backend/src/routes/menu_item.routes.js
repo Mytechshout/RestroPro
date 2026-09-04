@@ -88,15 +88,6 @@ router.get(
   authorize([SCOPES.SETTINGS]),
   getAllMenuItems
 );
-router.get(
-  "/:id",
-  isLoggedIn,
-  isAuthenticated,
-  isSubscriptionActive,
-  authorize([SCOPES.SETTINGS]),
-  getMenuItem
-);
-
 /* menu item: Addons */
 router.post(
   "/addons/:id/add",
@@ -221,5 +212,16 @@ router.delete(
   deleteRecipeItem
 );
 /* menu item: Recipes */
+
+// Keep this generic route last so paths such as /addons, /variants and
+// /recipe/items are handled by their dedicated endpoints first.
+router.get(
+  "/:id",
+  isLoggedIn,
+  isAuthenticated,
+  isSubscriptionActive,
+  authorize([SCOPES.SETTINGS]),
+  getMenuItem
+);
 
 module.exports = router;

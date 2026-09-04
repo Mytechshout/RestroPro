@@ -1,5 +1,5 @@
 import React from "react";
-import Logo from "../../assets/logo.svg";
+import AppLogo from "../../components/AppLogo";
 import { Link } from "react-router-dom";
 import { IconMenu } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,7 @@ export default function LNavbar() {
       <input id="my-drawer" type="checkbox" className="drawer-toggle" />
       <div className="flex items-center justify-between gap-4 container mx-auto px-4 py-3">
         <div>
-          <img src={Logo} alt="logo" className="h-12" />
+          <AppLogo className="max-w-[220px]" />
         </div>
         <div className="items-center hidden lg:flex">
           <a
@@ -76,7 +76,7 @@ export default function LNavbar() {
         <ul className="menu p-4 w-80 min-h-full text-base-content bg-white">
           {/* Sidebar content here */}
           <div className="mb-8">
-            <img src={Logo} alt="logo" className="h-12" />
+            <AppLogo className="max-w-[220px]" />
           </div>
           <li onClick={closeDrawer}>
             <a

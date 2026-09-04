@@ -7,7 +7,7 @@ import {
   IconDeviceTablet,
   IconLayout,
 } from "@tabler/icons-react";
-import Logo from "../../assets/logo.svg";
+import AppLogo from "../../components/AppLogo";
 import { subscriptionPrice, supportEmail } from "../../config/config";
 import LanguageChanger from "../../components/LanguageChanger";
 import { useTranslation } from "react-i18next";
@@ -49,7 +49,7 @@ export default function LadingPage() {
       </div>
       <img
         src="/assets/hero.webp"
-        alt="restro pro image"
+        alt="OneOs Pos restaurant management"
         className="w-full block"
       />
       {/* hero */}
@@ -137,7 +137,7 @@ export default function LadingPage() {
       <div className="w-full border-t">
         <div className="flex flex-col lg:flex-row  lg:justify-between gap-4 container mx-auto px-4 py-10 lg:px-12">
           <div className="w-full md:max-w-80">
-            <img src={Logo} alt="logo" className="h-12" />
+            <AppLogo className="max-w-[220px]" />
             <p className="mt-2 text-sm text-gray-500">
               {t('landing_page.footer_description')}
             </p>

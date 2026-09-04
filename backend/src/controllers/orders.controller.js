@@ -1,10 +1,19 @@
-const { getOrdersDB, updateOrderItemStatusDB, cancelOrderDB, completeOrderDB, getOrdersPaymentSummaryDB, createInvoiceDB, completeOrdersAndSaveInvoiceIdDB, getInvoiceIdFromOrderIdsDB, getEncryptedInvoiceIdDB } = require("../services/orders.service");
+const { getOrdersDB, updateOrderItemStatusDB, cancelOrderDB, completeOrderDB, getOrdersPaymentSummaryDB, createInvoiceDB, deleteInvoiceDB, completeOrdersAndSaveInvoiceIdDB, getInvoiceIdFromOrderIdsDB, getEncryptedInvoiceIdDB } = require("../services/orders.service");
 const {
   getPaymentTypesDB,
   getPrintSettingDB,
   getStoreSettingDB,
   getServiceChargeDB,
 } = require("../services/settings.service");
+
+const normalizeOrderIds = (orderIds) => {
+  if (!Array.isArray(orderIds) || orderIds.length === 0) return null;
+
+  const normalized = [...new Set(orderIds.map(Number))];
+  if (normalized.some((id) => !Number.isInteger(id) || id <= 0)) return null;
+
+  return normalized;
+};
 
 exports.getOrders = async (req, res) => {
   try {
@@ -132,9 +141,9 @@ exports.updateKitchenOrderItemStatus = async (req, res) => {
 exports.cancelKitchenOrder = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
-    const { orderIds } = req.body
+    const orderIds = normalizeOrderIds(req.body.orderIds);
 
-    if(!orderIds || orderIds?.length == 0) {
+    if(!orderIds) {
       return res.status(400).json({
         success: false,
         message: req.__("invalid_request") // Translate message
@@ -159,9 +168,9 @@ exports.cancelKitchenOrder = async (req, res) => {
 exports.completeKitchenOrder = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
-    const { orderIds } = req.body
+    const orderIds = normalizeOrderIds(req.body.orderIds);
 
-    if(!orderIds || orderIds?.length == 0) {
+    if(!orderIds) {
       return res.status(400).json({
         success: false,
         message: req.__("invalid_request") // Translate message
@@ -186,19 +195,17 @@ exports.completeKitchenOrder = async (req, res) => {
 exports.getOrdersPaymentSummary = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
-    const orderIds = req.body.orderIds;
+    const orderIds = normalizeOrderIds(req.body.orderIds);
 
-    if(!orderIds || orderIds?.length == 0) {
-      return res.status(400).JSON({
+    if(!orderIds) {
+      return res.status(400).json({
         success: false,
         message: req.__("invalid_request") // Translate message
       });
     }
 
-    const orderIdsParams = orderIds.join(",");
-
     const [ordersPaymentSummaryData, applicableServiceChargePercentage] = await Promise.all([
-      getOrdersPaymentSummaryDB(orderIdsParams, tenantId),
+      getOrdersPaymentSummaryDB(orderIds, tenantId),
       getServiceChargeDB(tenantId),
     ]);
 
@@ -302,9 +309,10 @@ exports.getOrdersPaymentSummary = async (req, res) => {
 exports.payAndCompleteKitchenOrder = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
-    const { orderIds, subTotal, taxTotal, serviceChargeTotal, total, selectedPaymentType } = req.body
+    const { subTotal, taxTotal, serviceChargeTotal, total, selectedPaymentType } = req.body;
+    const orderIds = normalizeOrderIds(req.body.orderIds);
 
-    if(!orderIds || orderIds?.length == 0) {
+    if(!orderIds) {
       return res.status(400).json({
         success: false,
         message: req.__("invalid_request") // Translate message
@@ -317,7 +325,12 @@ exports.payAndCompleteKitchenOrder = async (req, res) => {
     // get invoice id
     const invoiceId = await createInvoiceDB(subTotal, taxTotal, serviceChargeTotal, total, date, selectedPaymentType, tenantId);
 
-    await completeOrdersAndSaveInvoiceIdDB(orderIds, invoiceId, tenantId);
+    try {
+      await completeOrdersAndSaveInvoiceIdDB(orderIds, invoiceId, tenantId);
+    } catch (orderError) {
+      await deleteInvoiceDB(invoiceId, tenantId);
+      throw orderError;
+    }
 
     // get encrypted invoice id and customer id.
     const result = await getEncryptedInvoiceIdDB(invoiceId, tenantId);
@@ -340,9 +353,9 @@ exports.payAndCompleteKitchenOrder = async (req, res) => {
 exports.getInvoiceIdFromOrderId = async (req, res) => {
   try {
     const tenantId = req.user.tenant_id;
-    const { orderIds } = req.body
+    const orderIds = normalizeOrderIds(req.body.orderIds);
 
-    if(!orderIds || orderIds?.length == 0) {
+    if(!orderIds) {
       return res.status(400).json({
         success: false,
         message: req.__("invalid_request") // Translate message

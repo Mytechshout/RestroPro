@@ -2,8 +2,22 @@ const { CONFIG } = require("./index")
 
 const mySqlPromise = require("mysql2/promise");
 
-const pool = 
-mySqlPromise.createPool(`${CONFIG.DATABASE_URL}?ssl={"rejectUnauthorized":false}&multipleStatements=true&dateStrings=false&waitForConnections=true&connectionLimit=99&enableKeepAlive=true&keepAliveInitialDelay=10000`);
+const connectionOptions = new URLSearchParams({
+  multipleStatements: "true",
+  dateStrings: "false",
+  waitForConnections: "true",
+  connectionLimit: "99",
+  enableKeepAlive: "true",
+  keepAliveInitialDelay: "10000",
+});
+
+if (CONFIG.DATABASE_SSL) {
+  connectionOptions.set("ssl", JSON.stringify({ rejectUnauthorized: false }));
+}
+
+const pool = mySqlPromise.createPool(
+  `${CONFIG.DATABASE_URL}?${connectionOptions.toString()}`
+);
 
 console.log(`DB Pool Created.`);
 

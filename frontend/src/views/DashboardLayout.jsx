@@ -9,9 +9,9 @@ export default function DashboardLayout() {
   const [isNavbarCollapsed] = useContext(NavbarContext)
 
   return (
-    <div className='flex'>
+    <div className='min-h-screen w-full'>
       <Navbar />
-      <div className={isNavbarCollapsed?`w-full pl-[5.5rem]`:`w-full pl-[5.5rem] md:pl-72`}>
+      <div className={isNavbarCollapsed ? `w-full min-w-0 overflow-x-hidden md:pl-[5.5rem]` : `w-full min-w-0 overflow-x-hidden md:pl-72`}>
         <AppBar />
         <Outlet />
       </div>

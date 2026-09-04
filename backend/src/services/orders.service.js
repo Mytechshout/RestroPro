@@ -103,11 +103,9 @@ exports.updateOrderItemStatusDB = async (orderItemId, status, tenantId) => {
 exports.cancelOrderDB = async (orderIds, tenantId) => {
   const conn = await getMySqlPromiseConnection();
   try {
-    const orderIdsText = orderIds.join(",");
-
     await conn.query(
-      `UPDATE orders SET status = 'cancelled' WHERE id IN (${orderIdsText}) AND tenant_id = ?;`,
-      [tenantId]
+      "UPDATE orders SET status = 'cancelled' WHERE id IN (?) AND tenant_id = ?;",
+      [orderIds, tenantId]
     );
 
     return;
@@ -124,15 +122,13 @@ exports.completeOrderDB = async (orderIds, tenantId) => {
   const conn = await getMySqlPromiseConnection();
   try {
 
-    const orderIdsText = orderIds.join(",");
-
     const sql = `
     UPDATE orders SET
     status = 'completed'
-    WHERE id IN (${orderIdsText}) AND tenant_id = ?;
+    WHERE id IN (?) AND tenant_id = ?;
     `;
 
-    await conn.query(sql, [tenantId]);
+    await conn.query(sql, [orderIds, tenantId]);
 
     return;
   } catch (error) {
@@ -147,8 +143,6 @@ exports.getInvoiceIdFromOrderIdsDB = async (orderIds, tenantId) => {
   const conn = await getMySqlPromiseConnection();
   try {
 
-    const orderIdsText = orderIds.join(",");
-
     const sql = `
     SELECT
       HEX(AES_ENCRYPT(hex(invoice_id), ?)) as invoice_id,
@@ -156,12 +150,12 @@ exports.getInvoiceIdFromOrderIdsDB = async (orderIds, tenantId) => {
     FROM
       orders o
     WHERE
-      id IN (${orderIdsText}) AND tenant_id = ?
+      id IN (?) AND tenant_id = ?
     LIMIT
       1
     `;
 
-    const [result] = await conn.query(sql, [CONFIG.ENCRYPTION_KEY, tenantId]);
+    const [result] = await conn.query(sql, [CONFIG.ENCRYPTION_KEY, orderIds, tenantId]);
 
     return result[0];
   } catch (error) {
@@ -199,7 +193,7 @@ exports.getEncryptedInvoiceIdDB = async (invoiceId, tenantId) => {
   }
 };
 
-exports.checkInvoiceIdDB = async (encryptedInvoiceId) => {
+exports.checkInvoiceIdDB = async (encryptedInvoiceId, tenantId) => {
   const conn = await getMySqlPromiseConnection();
   try {
 
@@ -211,11 +205,12 @@ exports.checkInvoiceIdDB = async (encryptedInvoiceId) => {
       orders o
     WHERE
       AES_DECRYPT(UNHEX(?), ?) = HEX(invoice_id)
+      AND tenant_id = ?
     LIMIT
       1
     `;
 
-    const [result] = await conn.query(sql, [encryptedInvoiceId, CONFIG.ENCRYPTION_KEY]);
+    const [result] = await conn.query(sql, [encryptedInvoiceId, CONFIG.ENCRYPTION_KEY, tenantId]);
 
     return result[0];
   } catch (error) {
@@ -252,10 +247,10 @@ exports.getOrdersPaymentSummaryDB = async (orderIdsToFindSummary, tenantId) => {
       date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
       AND date <= DATE_ADD(NOW(), INTERVAL 1 DAY)
       AND o.status NOT IN ('completed', 'cancelled')
-      AND o.id IN (${orderIdsToFindSummary}) AND o.tenant_id = ?
+      AND o.id IN (?) AND o.tenant_id = ?
     `;
 
-    const [kitchenOrders] = await conn.query(sql, [tenantId]);
+    const [kitchenOrders] = await conn.query(sql, [orderIdsToFindSummary, tenantId]);
 
     let kitchenOrdersItems = [];
     let addons = [];
@@ -347,19 +342,32 @@ exports.createInvoiceDB = async (subtotal, taxTotal, serviceChargeTotal, total, 
   }
 }
 
+exports.deleteInvoiceDB = async (invoiceId, tenantId) => {
+  const conn = await getMySqlPromiseConnection();
+  try {
+    await conn.query(
+      "DELETE FROM invoices WHERE id = ? AND tenant_id = ?",
+      [invoiceId, tenantId]
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  } finally {
+    conn.release();
+  }
+};
+
 exports.completeOrdersAndSaveInvoiceIdDB = async (orderIds, invoiceId, tenantId) => {
   const conn = await getMySqlPromiseConnection();
   try {
 
-    const orderIdsText = orderIds.join(",");
-
     const sql = `
     UPDATE orders SET
     status = 'completed', payment_status = 'paid', invoice_id = ?
-    WHERE id IN (${orderIdsText}) AND tenant_id = ?;
+    WHERE id IN (?) AND tenant_id = ?;
     `;
 
-    await conn.query(sql, [invoiceId, tenantId]);
+    await conn.query(sql, [invoiceId, orderIds, tenantId]);
 
     return;
   } catch (error) {

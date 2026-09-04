@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useContext } from "react";
 import AvatarImg from "../assets/avatar.svg";
 import { Menu, Transition } from "@headlessui/react";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,19 +12,28 @@ import {
   IconLogout,
   IconUser,
   IconSun,
-  IconMoon
+  IconMoon,
+  IconMenu2,
 } from "@tabler/icons-react";
 import { iconStroke } from "../config/config";
 import { getUserDetailsInLocalStorage } from "../helpers/UserDetails";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../contexts/ThemeContext";
 import clsx from "clsx";
+import { NavbarContext } from "../contexts/NavbarContext";
+import { setNavbarCollapsed } from "../helpers/NavbarSettings";
 
 export default function SuperAdminAppBar() {
   const {t} = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const user = getUserDetailsInLocalStorage();
+  const [, setIsNavbarCollapsed] = useContext(NavbarContext);
+
+  const openMobileNavbar = () => {
+    setNavbarCollapsed(false);
+    setIsNavbarCollapsed(false);
+  };
 
   const btnLogout = async () => {
     try {
@@ -45,8 +54,15 @@ export default function SuperAdminAppBar() {
   };
 
   return (
-    <div className='flex items-center justify-between px-4 py-3 border-b w-full backdrop-blur sticky top-0 z-[9999] border-restro-border-green'>
-      <div></div>
+    <div className='flex items-center justify-between gap-3 px-4 py-3 border-b w-full backdrop-blur sticky top-0 z-30 border-restro-border-green bg-restro-card-bg'>
+      <button
+        type="button"
+        aria-label="Open navigation"
+        onClick={openMobileNavbar}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-restro-green-light text-restro-text md:hidden"
+      >
+        <IconMenu2 stroke={iconStroke} />
+      </button>
 
       {/* profile */}
       <Menu as="div" className="relative inline-block text-left z-50">

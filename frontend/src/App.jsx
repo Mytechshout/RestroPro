@@ -26,7 +26,7 @@ import ContactSupport from "./views/SettingsViews/ContactSupportPage";
 import CategoriesPage from "./views/SettingsViews/CategoriesPage";
 import MenuItemViewPage from "./views/SettingsViews/MenuItemViewPage";
 import { NavbarContext } from "./contexts/NavbarContext";
-import { getIsNavbarCollapsed } from "./helpers/NavbarSettings";
+import { getIsNavbarCollapsed, setNavbarCollapsed } from "./helpers/NavbarSettings";
 import PrintReceiptPage from "./views/PrintReceiptPage";
 import PrintTokenPage from "./views/PrintTokenPage";
 import NoAccessPage from "./views/NoAccessPage";
@@ -63,9 +63,22 @@ import InventoryDashboardPage from "./views/InventoryDashboard";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import MyToaster from "./components/MyToaster";
 export default function App() {
-  const [isNavbarCollapsed, setIsNavbarCollapsed] = useState(
-    getIsNavbarCollapsed()
+  const [isNavbarCollapsed, setIsNavbarCollapsed] = useState(() =>
+    window.innerWidth < 768 ? true : getIsNavbarCollapsed()
   );
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const collapseForMobile = (event) => {
+      if (event.matches) {
+        setNavbarCollapsed(true);
+        setIsNavbarCollapsed(true);
+      }
+    };
+
+    mobileQuery.addEventListener("change", collapseForMobile);
+    return () => mobileQuery.removeEventListener("change", collapseForMobile);
+  }, []);
 
   return (
     <SocketProvider>
